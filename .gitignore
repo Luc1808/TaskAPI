@@ -1,0 +1,21 @@
+# Go build
+/bin
+/tmp
+tmp/
+*.exe
+*.test
+*.out
+
+# Air / logs
+air.log
+
+# Editors / OS junk
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Env & local config
+.env
+.env.*
+

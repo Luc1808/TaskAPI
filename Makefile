@@ -6,7 +6,7 @@ run:
 
 # Run app with Air (hot reload)
 dev:
-	air
+	air -c ./air.toml
 
 # Run all Go tests
 test:
