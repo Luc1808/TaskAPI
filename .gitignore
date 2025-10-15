@@ -17,5 +17,4 @@ air.log
 
 # Env & local config
 .env
-.env.*
 

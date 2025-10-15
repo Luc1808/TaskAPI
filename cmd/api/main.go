@@ -6,13 +6,20 @@ import (
 	"os"
 
 	"github.com/Luc1808/TaskAPI/internal/api"
+	"github.com/Luc1808/TaskAPI/internal/repository"
 )
 
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		log.Fatal("missing required env var: PORT")
 	}
+
+	db, err := repository.InitDB()
+	if err != nil {
+		log.Fatalf("database init error: %v", err)
+	}
+	defer db.Close()
 
 	r := api.NewRouter()
 

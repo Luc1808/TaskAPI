@@ -1,0 +1,23 @@
+services:                  # A 'service' is a long-running container we manage
+  db:
+    image: postgres:16     # Use the official Postgres image (no Dockerfile needed)
+    container_name: taskapi-postgres   # Optional: easier to exec/inspect
+    environment:           # Postgres init configuration (first-time bootstrap)
+      POSTGRES_USER: taskapi
+      POSTGRES_PASSWORD: taskapi
+      POSTGRES_DB: taskapi
+    ports:
+      - "5432:5432"        # host:container → lets your app/psql connect via localhost:5432
+    volumes:
+      - taskapi_pgdata:/var/lib/postgresql/data
+                           # Persistent storage so DB data survives `docker compose down`
+    healthcheck:           # Let Compose know when Postgres is ready to accept connections
+      test: ["CMD-SHELL", "pg_isready -U taskapi -d taskapi"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: unless-stopped # If it crashes, restart; don’t restart on manual stop
+
+volumes:
+  taskapi_pgdata:          # Named volume managed by Docker (lives on your host)
+
