@@ -7,9 +7,14 @@ import (
 
 	"github.com/Luc1808/TaskAPI/internal/api"
 	"github.com/Luc1808/TaskAPI/internal/repository"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found (probably running in prod)")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("missing required env var: PORT")
