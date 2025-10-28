@@ -7,16 +7,19 @@ CREATE TABLE IF NOT EXISTS public.tasks (
 		CHECK (char_length(title) BETWEEN 1 AND 200),
 	description TEXT,
 	status TEXT NOT NULL DEFAULT 'todo' -- Could also have used VARCHAR; Just to be different
-		CHECK (status IN ('todo', 'progress', 'done')),
+		CHECK (status IN ('todo', 'in_progress', 'done')),
+	priority INTEGER NOT NULL DEFAULT 1 
+		CHECK (priority BETWEEN 1 AND 5),
+	due_at TIMESTAMPTZ,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- auto-update "update_at" on row UPDATE
+-- auto-update "updated_at" on row UPDATE
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-	NEW.update_at = now();
+	NEW.updated_at = now();
 	RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
