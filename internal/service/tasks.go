@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
@@ -33,6 +34,13 @@ type UpdateTaskInput struct {
 	Title       *string
 	Description *string
 	Status      *string
+}
+
+type ListOptions struct {
+	Status   string
+	Search   string
+	Page     string
+	PageSize string
 }
 
 type TaskService struct {
@@ -105,8 +113,37 @@ func (s *TaskService) GetTask(ctx context.Context, id string) (*models.Task, err
 	return t, nil
 }
 
-func (s *TaskService) ListTasks(ctx context.Context, filter repository.ListFilter, pagination repository.Pagination) ([]models.Task, error) {
-	return s.repo.List(ctx, filter, pagination)
+func (s *TaskService) ListTasks(ctx context.Context, in ListOptions) ([]models.Task, error) {
+	page := parsePositiveInt(in.Page, 1)
+	size := parsePositiveInt(in.PageSize, 20)
+	offset := (page - 1) * size
+
+	var statusPtr *models.TaskStatus
+	if in.Status != "" {
+		if err := validateStatus(in.Status); err != nil {
+			return nil, err
+		}
+		st := models.TaskStatus(in.Status)
+		statusPtr = &st
+	}
+
+	repoFilter := repository.ListFilter{
+		Status: statusPtr,
+		Search: in.Search,
+	}
+
+	repoPagination := repository.Pagination{
+		Limit:  size,
+		Offset: offset,
+	}
+
+	tasks, err := s.repo.List(ctx, repoFilter, repoPagination)
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, err
+	// return s.repo.List(ctx, filter, pagination)
 }
 
 func (s *TaskService) UpdateTask(ctx context.Context, id string, in UpdateTaskInput) (models.Task, error) {
@@ -155,4 +192,15 @@ func (s *TaskService) DeleteTask(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func parsePositiveInt(s string, def int) int {
+	if s == "" {
+		return def
+	}
+	n, err := strconv.Atoi(s)
+	if err != nil || n <= 0 {
+		return def
+	}
+	return n
 }

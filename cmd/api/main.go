@@ -7,6 +7,9 @@ import (
 
 	"github.com/Luc1808/TaskAPI/internal/api"
 	"github.com/Luc1808/TaskAPI/internal/repository"
+	"github.com/Luc1808/TaskAPI/internal/repository/postgres"
+	"github.com/Luc1808/TaskAPI/internal/service"
+	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 )
 
@@ -20,13 +23,17 @@ func main() {
 		log.Fatal("missing required env var: PORT")
 	}
 
-	db, err := repository.InitDB()
+	rawDb, err := repository.InitDB()
 	if err != nil {
 		log.Fatalf("database init error: %v", err)
 	}
-	defer db.Close()
+	defer rawDb.Close()
 
-	r := api.NewRouter()
+	db := sqlx.NewDb(rawDb, "pgx")
+
+	taskRepo := postgres.NewTaskRepo(db)
+	taskSvc := service.NewTaskService(taskRepo)
+	r := api.NewRouter(taskSvc)
 
 	log.Printf("server starting on :%s", port)
 	if err := http.ListenAndServe(":"+port, r); err != nil {
